@@ -1,9 +1,10 @@
-# 📝 TaskFlow API - Gerenciamento de Tarefas com Spring Boot & Supabase
+# 📝 TaskFlow API - Gerenciamento de Tarefas (Full Stack)
 
-Esta é uma API REST desenvolvida para o gerenciamento de tarefas (To-Do List), focada em boas práticas de desenvolvimento, persistência de dados na nuvem e organização em camadas.
+Esta é uma aplicação completa para o gerenciamento de tarefas (To-Do List). O projeto conta com uma API REST robusta desenvolvida em **Spring Boot** integrada ao banco de dados **Supabase** e uma interface web moderna e responsiva.
 
 ## 🚀 Tecnologias Utilizadas
 
+### **Backend**
 * **Java 17/21**
 * **Spring Boot 3**
     * Spring Web (REST API)
@@ -11,13 +12,20 @@ Esta é uma API REST desenvolvida para o gerenciamento de tarefas (To-Do List), 
 * **Supabase** (PostgreSQL na nuvem)
 * **Maven** (Gerenciador de dependências)
 
+### **Frontend**
+* **HTML5 & CSS3** (Interface em Dark Mode com detalhes em Azul)
+* **JavaScript (Vanilla)** (Consumo da API via Fetch API)
+
+
+
 ## 🏗️ Arquitetura do Projeto
 
 O projeto segue o padrão **MVC (Model-View-Controller)**, garantindo a separação de responsabilidades:
 - **Controller:** Gerencia as rotas e requisições HTTP.
 - **Service:** Contém a lógica de negócio da aplicação.
 - **Model:** Representa a entidade de dados (Tarefas).
-- **Repository:** Interface de comunicação com o banco de dados via JPA.
+- **Data (Repository):** Interface de comunicação com o banco de dados via JPA.
+- **Frontend:** Camada de interação com o usuário integrada via chamadas assíncronas.
 
 ## 🔌 Endpoints da API
 
@@ -33,6 +41,7 @@ A API expõe os seguintes endpoints para a tabela `tarefas`:
 
 ## ⚙️ Como executar o projeto
 
-1. Clone o repositório: `git clone https://github.com/SEU_USUARIO/NOME_DO_REPO`
-2. Configure as credenciais do seu banco Supabase no arquivo `src/main/resources/application.properties`.
-3. Execute o comando: `mvn spring-boot:run`
+### **1. Backend**
+1. Clone o repositório: 
+   ```bash
+   git clone [https://github.com/lkznx7/Task-Flow-API](https://github.com/lkznx7/Task-Flow-API)
