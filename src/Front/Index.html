@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minhas Tarefas</title>
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --card-bg: #1a1d29;
+            --primary-blue: #007bff;
+            --hover-blue: #0056b3;
+            --text-gray: #a0a0a0;
+            --text-white: #ffffff;
+            --danger: #ff4d4d;
+            --warning: #ffc107;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-blue);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .task-form {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input, textarea {
+            background: #252936;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 12px;
+            color: white;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary-blue);
+        }
+
+        .btn-salvar {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-salvar:hover {
+            background: var(--hover-blue);
+        }
+
+        .btn-cancelar {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: none; /* Escondido por padrão */
+        }
+
+        .btn-cancelar:hover {
+            background: #666;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            background: var(--card-bg);
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .task-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .task-info p {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit, .btn-delete {
+            background: transparent;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-edit {
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .btn-edit:hover {
+            background: var(--warning);
+            color: black;
+        }
+
+        .btn-delete {
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-delete:hover {
+            background: var(--danger);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Minhas Tarefas</h1>
+
+    <div class="task-form">
+        <input type="hidden" id="tarefaId">
+
+        <div class="input-group">
+            <input type="text" id="nome" placeholder="Título da tarefa..." required>
+            <textarea id="descricao" placeholder="Descrição detalhada..." rows="3"></textarea>
+
+            <button id="btn-submit" class="btn-salvar" onclick="salvarTarefa()">Adicionar Tarefa</button>
+            <button id="btn-cancel" class="btn-cancelar" onclick="limparFormulario()">Cancelar Edição</button>
+        </div>
+    </div>
+
+    <ul id="task-list" class="task-list">
+    </ul>
+</div>
+
+<script>
+    const API_URL = "http://localhost:8080/api/tarefas";
+
+    document.addEventListener('DOMContentLoaded', listarTarefas);
+
+    // 1. READ (GET)
+    async function listarTarefas() {
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error("Erro no servidor ao buscar.");
+
+            const tarefas = await response.json();
+            const listElement = document.getElementById('task-list');
+            listElement.innerHTML = '';
+
+            tarefas.forEach(tarefa => {
+                const li = document.createElement('li');
+                li.className = 'task-item';
+
+                // Tratamento caso o texto tenha aspas simples
+                const nomeSafe = tarefa.nome ? tarefa.nome.replace(/'/g, "\\'") : '';
+                const descSafe = tarefa.descricao ? tarefa.descricao.replace(/'/g, "\\'") : '';
+
+                li.innerHTML = `
+                    <div class="task-info">
+                        <h3>${tarefa.nome}</h3>
+                        <p>${tarefa.descricao || 'Sem descrição'}</p>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-edit" onclick="prepararEdicao(${tarefa.id}, '${nomeSafe}', '${descSafe}')">Editar</button>
+                        <button class="btn-delete" onclick="deletarTarefa(${tarefa.id})">Excluir</button>
+                    </div>
+                `;
+                listElement.appendChild(li);
+            });
+        } catch (error) {
+            console.error("Erro ao listar:", error);
+        }
+    }
+
+    // 2. CREATE (POST) e UPDATE (PUT)
+    async function salvarTarefa() {
+        const id = document.getElementById('tarefaId').value;
+        const nome = document.getElementById('nome').value;
+        const descricao = document.getElementById('descricao').value;
+
+        if (!nome) return alert("O nome é obrigatório!");
+
+        const tarefaData = { nome: nome, descricao: descricao };
+
+        try {
+            let response;
+
+            // Se existir um ID oculto, significa que estamos EDITANDO (PUT)
+            if (id) {
+                response = await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tarefaData)
+                });
+            } else {
+                // Se NÃO existir ID, estamos CRIANDO (POST)
+                response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tarefaData)
+                });
+            }
+
+            if (response.ok) {
+                limparFormulario();
+                listarTarefas();
+            } else {
+                alert(`Falha na operação. Código do erro: ${response.status}`);
+            }
+        } catch (error) {
+            console.error("Erro ao salvar:", error);
+        }
+    }
+
+    // Preenche o formulário para fazer o PUT
+    function prepararEdicao(id, nome, descricao) {
+        document.getElementById('tarefaId').value = id;
+        document.getElementById('nome').value = nome;
+        document.getElementById('descricao').value = descricao;
+
+        // Altera a interface para modo de edição
+        document.getElementById('btn-submit').innerText = "Atualizar Tarefa";
+        document.getElementById('btn-cancel').style.display = "block";
+    }
+
+    function limparFormulario() {
+        document.getElementById('tarefaId').value = '';
+        document.getElementById('nome').value = '';
+        document.getElementById('descricao').value = '';
+
+        document.getElementById('btn-submit').innerText = "Adicionar Tarefa";
+        document.getElementById('btn-cancel').style.display = "none";
+    }
+
+    // 3. DELETE
+    async function deletarTarefa(id) {
+        if (!confirm("Deseja realmente excluir esta tarefa?")) return;
+
+        try {
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                listarTarefas();
+            } else {
+                alert(`Erro ao excluir! O servidor retornou: ${response.status}. Verifique o CORS ou os logs do Spring Boot.`);
+            }
+        } catch (error) {
+            console.error("Erro ao deletar:", error);
+            alert("Erro de conexão ao tentar deletar a tarefa.");
+        }
+    }
+</script>
+
+</body>
+</html>
