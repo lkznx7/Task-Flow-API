@@ -186,7 +186,6 @@
 
     document.addEventListener('DOMContentLoaded', listarTarefas);
 
-    // 1. READ (GET)
     async function listarTarefas() {
         try {
             const response = await fetch(API_URL);
@@ -200,7 +199,6 @@
                 const li = document.createElement('li');
                 li.className = 'task-item';
 
-                // Tratamento caso o texto tenha aspas simples
                 const nomeSafe = tarefa.nome ? tarefa.nome.replace(/'/g, "\\'") : '';
                 const descSafe = tarefa.descricao ? tarefa.descricao.replace(/'/g, "\\'") : '';
 
@@ -221,7 +219,6 @@
         }
     }
 
-    // 2. CREATE (POST) e UPDATE (PUT)
     async function salvarTarefa() {
         const id = document.getElementById('tarefaId').value;
         const nome = document.getElementById('nome').value;
@@ -234,7 +231,6 @@
         try {
             let response;
 
-            // Se existir um ID oculto, significa que estamos EDITANDO (PUT)
             if (id) {
                 response = await fetch(`${API_URL}/${id}`, {
                     method: 'PUT',
@@ -261,7 +257,6 @@
         }
     }
 
-    // Preenche o formulário para fazer o PUT
     function prepararEdicao(id, nome, descricao) {
         document.getElementById('tarefaId').value = id;
         document.getElementById('nome').value = nome;
@@ -281,25 +276,31 @@
         document.getElementById('btn-cancel').style.display = "none";
     }
 
-    // 3. DELETE
     async function deletarTarefa(id) {
-        if (!confirm("Deseja realmente excluir esta tarefa?")) return;
+    console.log("Tentando excluir a tarefa com ID:", id); // Veja isso no F12 do navegador
 
-        try {
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'DELETE'
-            });
+    if (!confirm("Deseja realmente excluir esta tarefa?")) return;
 
-            if (response.ok) {
-                listarTarefas();
-            } else {
-                alert(`Erro ao excluir! O servidor retornou: ${response.status}. Verifique o CORS ou os logs do Spring Boot.`);
+    try {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
             }
-        } catch (error) {
-            console.error("Erro ao deletar:", error);
-            alert("Erro de conexão ao tentar deletar a tarefa.");
+        });
+
+        if (response.ok) {
+            console.log("Tarefa excluída com sucesso!");
+            listarTarefas(); // Recarrega a lista
+        } else {
+            const erroTexto = await response.text();
+            alert(`Erro do Servidor (${response.status}): ${erroTexto}`);
         }
+    } catch (error) {
+        console.error("Erro na requisição:", error);
+        alert("Não foi possível conectar ao servidor. O Spring Boot está rodando?");
     }
+}
 </script>
 
 </body>
